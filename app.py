@@ -43,17 +43,22 @@ state_to_language = {
     "Puducherry": "ta",  # Tamil
 }
 
-
-
 @app.route('/', methods=['GET', 'POST'])
 def home():
+    lang = "en"
     if request.method == 'POST':
         data = request.get_json()
-        state = data.get("state", "")
+        print(data)
+        city = data.get("city")
+        state = data.get("state")
+        postcode = data.get("postcode")
+        lat = data.get("latitude")
+        lng = data.get("longitude")
+        print(city, state, postcode, lat, lng)
         lang = state_to_language.get(state, "en")
-    else:
-        lang = "en"
-    print(lang)
+        print(lang)
+    elif lang == "en":
+        print(lang)
     return render_template('index.html')
 
 if __name__ == '__main__':
