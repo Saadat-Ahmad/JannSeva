@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, jsonify
-
+from openMeteo import weather, sunshine
 app = Flask(__name__)
 
 state_to_language = {
@@ -51,12 +51,14 @@ def home():
         print(data)
         city = data.get("city")
         state = data.get("state")
-        postcode = data.get("postcode")
+        postcode = data.get("pincode")
         lat = data.get("latitude")
         lng = data.get("longitude")
         print(city, state, postcode, lat, lng)
         lang = state_to_language.get(state, "en")
         print(lang)
+        print(sunshine(lat, lng))
+        print(weather(lat, lng))
     elif lang == "en":
         print(lang)
     return render_template('index.html')
