@@ -47,6 +47,13 @@ state_to_language = {
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
+    if request.method == 'POST':
+        data = request.get_json()
+        state = data.get("state", "")
+        lang = state_to_language.get(state, "en")
+    else:
+        lang = "en"
+    print(lang)
     return render_template('index.html')
 
 if __name__ == '__main__':
