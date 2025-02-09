@@ -1,19 +1,29 @@
 import datetime
-from flask import Flask, request, render_template, redirect, jsonify, session
+from flask import Flask, request, render_template, redirect, jsonify, session, flash
 from flask_session import Session
 from openMeteo import weather, sunshine
 import google.generativeai as genai
 from aqi import airpolution
-
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import check_password_hash, generate_password_hash
+import sqlite3
 
 app = Flask(__name__)
 app.secret_key = '12345'
 
-genai.configure(api_key="GOOGLE_API_KEY")
+genai.configure(api_key="GOOGLE_API")
 
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ncrypt.db'
 Session(app)
+
+# db = SQL("sqlite:///database.db")
+
+conn = sqlite3.connect('database.db', check_same_thread=False)
+db = conn.cursor()
+table = "CREATE TABLE IF NOT EXISTS 'users' (id INTEGER PRIMARY KEY AUTOINCREMENT, phonenumber TEXT UNIQUE NOT NULL, hashed_password TEXT NOT NULL);"
+db.execute(table)
 
 generation_config = {
     "temperature": 0.7,          
@@ -78,7 +88,6 @@ state_to_language = {
     "Puducherry": "ta",  # Tamil
 }
 
-
 @app.route('/', methods=['GET', 'POST'])
 def home():
     lang = "en"
@@ -97,9 +106,12 @@ def home():
         lang = state_to_language.get(state, "en")
         print(lang)
         try:
+            
             chat.send_message(f"the following data set is the sunshine duration in the {city}, {state} region.\n"+str(sunshine(lat, lng))+f"\nthe following dataset contains various weather factors over the last few days in the {city} region\n" + str(weather(lat,lng)) + f"\nthe data about air polution around {city} is listed below\n" + str(airpolution(lat,lng))+ f"make a report for a health clinics and hospitals in the {city} region on what the environmental factors leading to now can impact health. if you find the airpolution")
             weatherReport = chat.last.text
-            # prompt = text_input
+            report = True
+            print("weather reported")
+            print(weatherReport)
             if session["context"]:
                 session["context"] = session["context"] + "user: " + text_input
                 context = session["context"] 
@@ -107,6 +119,9 @@ def home():
                session["context"] = "user: " + text_input
                context = session["context"] 
         except:
+            print("passed")
+            session["context"] = "user: " + text_input
+            context = session["context"] 
             pass
         # while True:
         #     prompt = input("ask: ")
@@ -136,13 +151,89 @@ def home():
 
 @app.route("/logout")
 def logout():
-    """Log encryption out"""
+    # store the report in the database
 
     # Forget any user_id
     session.clear()
 
     # Redirect user to login form
     return redirect("/")
+
+@app.route("/signin", methods=['GET', 'POST'])
+def signin():
+    if request.method == 'POST':
+        phoneNumber = request.form.get("phoneNumber")
+        password = request.form.get("password")
+        confirmation = request.form.get("confirmation")
+        name = db.execute("SELECT * FROM users WHERE encryption_name = ?", (phoneNumber, )).fetchone()
+        if not encryption_name:
+            flash("Input unique encryption name", "error")
+            return render_template("create.html")
+        if not password:
+            flash("Input password", "error")
+            return render_template("create.html")
+        if len(password) < 8:
+            flash("Password should have at least 8 characters", "error")
+            return render_template("create.html")
+        if not confirmation:
+            flash("Please Confirm password", "error")
+            return render_template("create.html")
+        if password != confirmation:
+            flash("Password was not confirmed correctly", "error")
+            return render_template("create.html")
+        elif name:
+            flash("encryption name already exists", "error")
+            return render_template("create.html")
+        else:
+            hashed_password = generate_password_hash(password)
+            db.execute("INSERT INTO users (phonenumber, hashed_password) VALUES(?, ?)", (phoneNumber, hashed_password))
+            conn.commit()
+            rows = db.execute(
+            "SELECT * FROM users WHERE phonenumber = ?", (phoneNumber,)).fetchall()
+            
+
+            session["user_id"] = rows[0][0] 
+            session["history"] = rows[0][2]
+            return redirect("/")
+    return render_template('create.html')
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """Log user in"""
+
+    # Forget any user_id
+    session.clear()
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+
+        # Ensure username was submitted
+        if not request.form.get("phoneNumber"):
+            flash("Must provide phone number", "error")
+            return render_template("use.html")
+        # Ensure password was submitted
+        elif not request.form.get("password"):
+            flash("Must provide password", "error")
+            return render_template("use.html")
+
+        # Query database for username
+        rows = db.execute("SELECT * FROM users WHERE phonenumber = ?", (request.form.get("phoneNumber"), )).fetchall()
+        # Ensure username exists and password is correct
+        if (not rows) or (not check_password_hash(rows[0][2], request.form.get("password"))):
+            flash("invalid phone number and/or password", "error")
+            return render_template("use.html")
+        #print(rows)
+        # Remember which user has logged in
+        session["user_id"] = rows[0][0]
+        session["history"] = rows[0][2]
+        # Redirect user to home page
+        return redirect("/")
+
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:
+        return render_template("use.html")
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -13,14 +13,18 @@
             align-items: center;
             height: 100vh;
             background-color: #f4f4f4;
+            margin: 0;
         }
+
         .container {
             width: 350px;
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
+
         #chat-box {
             height: 400px;
             overflow-y: auto;
@@ -29,42 +33,87 @@
             margin-bottom: 10px;
             background: #fff;
         }
+
         .message {
             padding: 8px;
             margin: 5px;
             border-radius: 5px;
+            display: inline-block;
+            max-width: 80%;
         }
+
         .user {
             background: #d1e7dd;
             text-align: right;
         }
+
         .bot {
             background: #f8d7da;
             text-align: left;
         }
-        input, button {
-            width: 100%;
+
+        input {
+            width: calc(100% - 20px);
             padding: 10px;
-            margin-top: 5px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            margin-bottom: 10px;
         }
-        .logout-btn {
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
             position: absolute;
             top: 10px;
             right: 10px;
-            text-decoration: None;
-            background: #ff4d4d;
-            color: white;
-            border: none;
+        }
+
+        .logout-btn {
             padding: 5px 10px;
             cursor: pointer;
             border-radius: 5px;
+            text-decoration: None;
+            background: #ff4d4d;
+            color: white;
+        }
+
+        .login-btn {
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            text-decoration: None;
+            background: rgb(87, 27, 199);
+            color: white;
+        }
+
+        .signin-btn {
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            text-decoration: None;
+            background: #28a745;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <a href="/logout" class="logout-btn">Logout</a>
+    <div class="btn-container">
+        <a href="/login" class="login-btn">Login</a>
+        <a href="/signin" class="signin-btn">Sign In</a>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
     <div class="container">
         <h3>Chat</h3>
         <div id="chat-box">
