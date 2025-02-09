@@ -1,62 +1,77 @@
-function getLocationAndSendToFlask() {
+function handleSubmit(event) {
+    event.preventDefault();
+    const textInput = document.getElementById('text_input').value;
+    
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(success, error, { timeout: 10000 });
+        navigator.geolocation.getCurrentPosition(
+            position => success(position, textInput),
+            error => fallbackSend(textInput),
+            { timeout: 10000 }
+        );
     } else {
-        window.location.href = "/"; 
+        fallbackSend(textInput);
     }
 }
 
-function success(position) {
+function success(position, textInput) {
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
 
     fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
         .then(response => response.json())
         .then(data => {
-            const state = data.address.state;
-            const city = data.address.city || data.address.town || "Unknown"; // Handle cases where city might not be present
-            const pincode = data.address.postcode;
-            sendStateToFlask(city, state, lat, lng, pincode);
+            const address = data.address || {};
+            const formData = {
+                text_input: textInput,
+                city: address.city || address.town || "Unknown",
+                state: address.state,
+                latitude: lat,
+                longitude: lng,
+                pincode: address.postcode
+            };
+            sendToFlask(formData);
         })
-        .catch(() => window.location.href = "/"); 
+        .catch(() => fallbackSend(textInput));
 }
 
-function error() {
-    window.location.href = "/";
-}
-
-function sendStateToFlask(city, state, lat, lng, pincode) {
-    // Prepare the data to send
-    const data = {
-        city: city,
-        state: state,
-        latitude: lat,
-        longitude: lng,
-        pincode: pincode
-    };
-
-    // Send a POST request to the Flask server
-    fetch('/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)  // Send the data as JSON
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        // You can handle the response here if needed
-        console.log('Data sent successfully:', data);
-    })
-    .catch(error => {
-        console.error('There was a problem with the fetch operation:', error);
+function fallbackSend(textInput) {
+    sendToFlask({
+        text_input: textInput,
+        city: "Unknown",
+        state: "Unknown",
+        latitude: null,
+        longitude: null,
+        pincode: null
     });
 }
 
+function sendToFlask(data) {
+    const formData = new FormData();
+    for (const key in data) {
+        formData.append(key, data[key]);
+    }
 
-window.onload = getLocationAndSendToFlask;
+    fetch('/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json()) // Parse the JSON response
+    .then(responseData => {
+        // Update the chat box with the bot's response
+        const chatBox = document.getElementById('chat-box');
+        const userMessage = document.createElement('div');
+        userMessage.className = 'message user';
+        userMessage.textContent = data.text_input; // Show the user's input
+        chatBox.appendChild(userMessage);
+
+        const botMessage = document.createElement('div');
+        botMessage.className = 'message bot';
+        botMessage.textContent = responseData.response; // Show the bot's response
+        chatBox.appendChild(botMessage);
+
+        // Scroll to the bottom of the chat box
+        chatBox.scrollTop = chatBox.scrollHeight;
+    })
+    .catch(error => console.error('Error:', error));
+}
+// Remove the window.onload geolocation call
