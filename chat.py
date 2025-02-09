@@ -1,6 +1,6 @@
 import google.generativeai as genai
 
-genai.configure(api_key="AIzaSyBXMdpq9ZPC2-tsUMQ4KOtY-cnJgwmDSOM")
+genai.configure(api_key="GOOGLE_API_KEY")
 
 generation_config = {
     "temperature": 0.7,          

@@ -9,7 +9,7 @@ from aqi import airpolution
 app = Flask(__name__)
 app.secret_key = '12345'
 
-genai.configure(api_key="AIzaSyBXMdpq9ZPC2-tsUMQ4KOtY-cnJgwmDSOM")
+genai.configure(api_key="GOOGLE_API_KEY")
 
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
