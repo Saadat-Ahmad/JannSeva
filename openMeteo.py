@@ -92,4 +92,4 @@ def weather(lat, lng):
     data = main(lat, lng)
     return data[1]
 
-print(weather(27.9445504, 78.0828672))
+# print(weather(27.9445504, 78.0828672))
