@@ -1,6 +1,8 @@
 from flask import Flask, request, render_template, jsonify
 from openMeteo import weather, sunshine
 import google.generativeai as genai
+from aqi import airpolution
+
 
 app = Flask(__name__)
 
@@ -83,12 +85,12 @@ def home():
         print(city, state, postcode, lat, lng)
         lang = state_to_language.get(state, "en")
         print(lang)
-        chat.send_message(f"the following data set is the sunshine duration in the {city} region.\n"+str(sunshine(lat, lng))+f"\nthe following dataset contains various weather factors over the last few days in the {city} region\n" + str(weather(lat,lng)) + f"make a report for a health clinics and hospitals in the {city} region on what the environmental factors leading to now can impact health.")
+        chat.send_message(f"the following data set is the sunshine duration in the {city} region.\n"+str(sunshine(lat, lng))+f"\nthe following dataset contains various weather factors over the last few days in the {city} region\n" + str(weather(lat,lng)) + f"\nthe data about air polution around {city} is listed below\n" + str(airpolution(lat,lng))+ f"make a report for a health clinics and hospitals in the {city} region on what the environmental factors leading to now can impact health. if you find the airpolution")
         weatherReport = chat.last.text
         print(weatherReport)
         while True:
             prompt = input("ask: ")
-            chat.send_message(f"i live in {city}, use {lang} and its characters/script when talking to me and try to speak in the dialect of my city/region, that is {city}. speak to me ONLY in the local language of that region, DO NOT use any other language! under no circumstances give a response that contains any other language other than the language of the region. dont put jargons. your response yould be easy to understand. Act as a professional doctor (female) give only professional sounding advices. try to solve the problem of mine. use {weatherReport} if required. ASK FOLLOW UP QUESTIONS to get better understanding of my situation and then help me with my problem. keep the response short.and also recommend expert help if necessary, mention government hospitals and clinics in {city}, GIVE ADDRESS. respond to the following {prompt}")
+            chat.send_message(f"i live in {city}, use {lang} and its characters/script when talking to me and try to speak in the dialect of my city/region, that is {city}. speak to me ONLY in the local language of that region, DO NOT use any other language! under no circumstances give a response that contains any other language other than the language of the region. dont put jargons. your response yould be easy to understand. Act as a professional doctor (female) give only professional sounding advices. try to solve the problem of mine. use {weatherReport} if required. ASK FOLLOW UP QUESTIONS to get better understanding of my situation. you can ask questions like age, gender, etc. and then help me with my problem. keep the response short.and also recommend expert help if necessary, mention government hospitals and clinics in {city}, GIVE ADDRESS. respond to the following {prompt}")
             response = chat.last.text
             print(response)
 
