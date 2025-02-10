@@ -188,13 +188,13 @@ def signin():
 def otp():
     if request.method == "GET":
         number = session["number"]
-        account_sid = 'AC7d4c02951ab313f09e7261fe2c94876d'
-        auth_token = '001433fc6a2557c5a070699531611c04'
+        account_sid = 'ACOUNT_SID'
+        auth_token = 'ACOUNT_TOKEN'
         otp = random.randint(100000,999999)
         sms = f"Your JANNSEVA verification code is: {otp}"
         client = Client(account_sid, auth_token)
         message = client.messages.create(
-        from_='+16813523335',
+        from_='NUM',
         body=sms,
         to=number
         )
