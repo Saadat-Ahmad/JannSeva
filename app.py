@@ -15,14 +15,13 @@ genai.configure(api_key="GOOGLE_API")
 
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ncrypt.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 Session(app)
 
-# db = SQL("sqlite:///database.db")
 
-conn = sqlite3.connect('database.db', check_same_thread=False)
+conn = sqlite3.connect('users.db', check_same_thread=False)
 db = conn.cursor()
-table = "CREATE TABLE IF NOT EXISTS 'users' (id INTEGER PRIMARY KEY AUTOINCREMENT, phonenumber TEXT UNIQUE NOT NULL, hashed_password TEXT NOT NULL);"
+table = "CREATE TABLE IF NOT EXISTS 'users' (id INTEGER PRIMARY KEY AUTOINCREMENT, phonenumber TEXT UNIQUE NOT NULL, hashed_password TEXT NOT NULL, history TEXT );"
 db.execute(table)
 
 generation_config = {
@@ -105,13 +104,12 @@ def home():
         print(city, state, postcode, lat, lng)
         lang = state_to_language.get(state, "en")
         print(lang)
+        chat.send_message(f"the following data set is the sunshine duration in the {city}, {state} region.\n"+str(sunshine(lat, lng))+f"\nthe following dataset contains various weather factors over the last few days in the {city} region\n" + str(weather(lat,lng)) + f"\nthe data about air polution around {city} is listed below\n" + str(airpolution(lat,lng))+ f"make a report for a health clinics and hospitals in the {city} region on what the environmental factors leading to now can impact health. if you find the airpolution")
+        weatherReport = chat.last.text
+        report = True
+        print("weather reported")
+        print(weatherReport)
         try:
-            
-            chat.send_message(f"the following data set is the sunshine duration in the {city}, {state} region.\n"+str(sunshine(lat, lng))+f"\nthe following dataset contains various weather factors over the last few days in the {city} region\n" + str(weather(lat,lng)) + f"\nthe data about air polution around {city} is listed below\n" + str(airpolution(lat,lng))+ f"make a report for a health clinics and hospitals in the {city} region on what the environmental factors leading to now can impact health. if you find the airpolution")
-            weatherReport = chat.last.text
-            report = True
-            print("weather reported")
-            print(weatherReport)
             if session["context"]:
                 session["context"] = session["context"] + "user: " + text_input
                 context = session["context"] 
@@ -132,10 +130,10 @@ def home():
         try:
             prompt = context
             dateTime = datetime.datetime.now()
-            print(prompt)
+            print(context)
             chat.send_message(f"I live in {city}. Communicate with me ONLY in {lang}, using its script and the local dialect of {city}. DO NOT use any other language under any circumstances. Act as a professional female healthcare worker, providing clear, jargon-free advice. Address my concern directly and keep responses concise. DONOT put placeholders or variables in the response. Use {weatherReport} only if weather conditions could be affecting my health. Ask relevant follow-up questions (e.g., age, gender, weight) to better understand my situation before advising. If expert help is needed, recommend government hospitals and clinics in {city}. Today is {dateTime} consider the season and weather during this time of the year before giving a response .Now, respond to my health concern: {prompt}")
             print(chat.last.text)
-            context = context + "AI: " + chat.last.text
+            context = context + "\nAI: " + chat.last.text
             session["context"] = context
             
             return jsonify({
@@ -152,7 +150,12 @@ def home():
 @app.route("/logout")
 def logout():
     # store the report in the database
-
+    try:
+        db.execute("UPDATE users SET history = ? WHERE id = ?", (session["context"], session["user_id"]))
+        conn.commit()
+    except Exception as e:
+        print(e)
+        pass
     # Forget any user_id
     session.clear()
 
@@ -165,9 +168,9 @@ def signin():
         phoneNumber = request.form.get("phoneNumber")
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
-        name = db.execute("SELECT * FROM users WHERE encryption_name = ?", (phoneNumber, )).fetchone()
-        if not encryption_name:
-            flash("Input unique encryption name", "error")
+        name = db.execute("SELECT * FROM users WHERE phonenumber = ?", (phoneNumber, )).fetchone()
+        if not phoneNumber:
+            flash("Input phonenumber", "error")
             return render_template("create.html")
         if not password:
             flash("Input password", "error")
@@ -182,7 +185,7 @@ def signin():
             flash("Password was not confirmed correctly", "error")
             return render_template("create.html")
         elif name:
-            flash("encryption name already exists", "error")
+            flash("Account with this phonenumber already exists", "error")
             return render_template("create.html")
         else:
             hashed_password = generate_password_hash(password)
@@ -193,7 +196,8 @@ def signin():
             
 
             session["user_id"] = rows[0][0] 
-            session["history"] = rows[0][2]
+            session["context"] = rows[0][3]
+            print(rows[0][3], "context")
             return redirect("/")
     return render_template('create.html')
 
@@ -226,7 +230,7 @@ def login():
         #print(rows)
         # Remember which user has logged in
         session["user_id"] = rows[0][0]
-        session["history"] = rows[0][2]
+        session["context"] = rows[0][3]
         # Redirect user to home page
         return redirect("/")
 
