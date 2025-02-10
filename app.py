@@ -104,7 +104,7 @@ def home():
         except:
             pass
         postcode = request.form.get('pincode')
-        print(city, state, postcode, lat, lng)
+        print(city, state, postcode)
         lang = state_to_language.get(state, "en")
         print(lang)
         chat.send_message(f"the following data set is the sunshine duration in the {city}, {state} region.\n"+str(sunshine(lat, lng))+f"\nthe following dataset contains various weather factors over the last few days in the {city} region\n" + str(weather(lat,lng)) + f"\nthe data about air polution around {city} is listed below\n" + str(airpolution(lat,lng))+ f"make a report for a health clinics and hospitals in the {city} region on what the environmental factors leading to now can impact health. if you find the airpolution")
@@ -188,8 +188,8 @@ def signin():
 def otp():
     if request.method == "GET":
         number = session["number"]
-        account_sid = 'ACOUNT_SID'
-        auth_token = 'ACOUNT_TOKEN'
+        account_sid = 'ACCOUNT_SID'
+        auth_token = 'AUTH_TOKEN'
         otp = random.randint(100000,999999)
         sms = f"Your JANNSEVA verification code is: {otp}"
         client = Client(account_sid, auth_token)
@@ -209,7 +209,6 @@ def otp():
             rows = db.execute(
             "SELECT * FROM users WHERE phonenumber = ?", (session["number"],)).fetchall()
             
-
             session["user_id"] = rows[0][0] 
             session["context"] = rows[0][2]
             print(rows[0][2], "context")
@@ -222,8 +221,8 @@ def otp():
 def loginotp():
     if request.method == "GET":
         number = session["number"]
-        account_sid = 'ACOUNT_SID'
-        auth_token = 'ACOUNT_TOKEN'
+        account_sid = 'ACCOUNT_SID'
+        auth_token = 'AUTH_TOKEN'
         otp = random.randint(100000,999999)
         sms = f"Your JANNSEVA verification code is: {otp}"
         client = Client(account_sid, auth_token)
