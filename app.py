@@ -7,21 +7,24 @@ from aqi import airpolution
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 import sqlite3
+from twilio.rest import Client
+import random
 
 app = Flask(__name__)
 app.secret_key = '12345'
+
 
 genai.configure(api_key="GOOGLE_API")
 
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///jannseva.db'
 Session(app)
 
 
-conn = sqlite3.connect('users.db', check_same_thread=False)
+conn = sqlite3.connect('jannseva.db', check_same_thread=False)
 db = conn.cursor()
-table = "CREATE TABLE IF NOT EXISTS 'users' (id INTEGER PRIMARY KEY AUTOINCREMENT, phonenumber TEXT UNIQUE NOT NULL, hashed_password TEXT NOT NULL, history TEXT );"
+table = "CREATE TABLE IF NOT EXISTS 'users' (id INTEGER PRIMARY KEY AUTOINCREMENT, phonenumber TEXT UNIQUE NOT NULL, history TEXT );"
 db.execute(table)
 
 generation_config = {
@@ -166,78 +169,86 @@ def logout():
 def signin():
     if request.method == 'POST':
         phoneNumber = request.form.get("phoneNumber")
-        password = request.form.get("password")
-        confirmation = request.form.get("confirmation")
         name = db.execute("SELECT * FROM users WHERE phonenumber = ?", (phoneNumber, )).fetchone()
         if not phoneNumber:
             flash("Input phonenumber", "error")
             return render_template("create.html")
-        if not password:
-            flash("Input password", "error")
-            return render_template("create.html")
-        if len(password) < 8:
-            flash("Password should have at least 8 characters", "error")
-            return render_template("create.html")
-        if not confirmation:
-            flash("Please Confirm password", "error")
-            return render_template("create.html")
-        if password != confirmation:
-            flash("Password was not confirmed correctly", "error")
-            return render_template("create.html")
         elif name:
-            flash("Account with this phonenumber already exists", "error")
-            return render_template("create.html")
+            session["number"] = phoneNumber
+            return redirect("/loginOTP", code=303)
         else:
-            hashed_password = generate_password_hash(password)
-            db.execute("INSERT INTO users (phonenumber, hashed_password) VALUES(?, ?)", (phoneNumber, hashed_password))
-            conn.commit()
-            rows = db.execute(
-            "SELECT * FROM users WHERE phonenumber = ?", (phoneNumber,)).fetchall()
+            session["number"] = phoneNumber
+            return redirect("/getOTP", code=303)
             
-
-            session["user_id"] = rows[0][0] 
-            session["context"] = rows[0][3]
-            print(rows[0][3], "context")
-            return redirect("/")
     return render_template('create.html')
 
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    """Log user in"""
 
-    # Forget any user_id
-    session.clear()
+@app.route("/getOTP", methods = ["GET", "POST"])
+def otp():
+    if request.method == "GET":
+        number = session["number"]
+        account_sid = 'AC7d4c02951ab313f09e7261fe2c94876d'
+        auth_token = '001433fc6a2557c5a070699531611c04'
+        otp = random.randint(100000,999999)
+        sms = f"Your JANNSEVA verification code is: {otp}"
+        client = Client(account_sid, auth_token)
+        message = client.messages.create(
+        from_='+16813523335',
+        body=sms,
+        to=number
+        )
+        session["otp"] = str(otp)
+        return render_template("auth.html")
 
-    # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
+        code = request.form.get("OTP")
+        if code == session["otp"]:
+            db.execute("INSERT INTO users (phonenumber) VALUES(?)", (session["number"],))
+            conn.commit()
+            rows = db.execute(
+            "SELECT * FROM users WHERE phonenumber = ?", (session["number"],)).fetchall()
+            
 
-        # Ensure username was submitted
-        if not request.form.get("phoneNumber"):
-            flash("Must provide phone number", "error")
-            return render_template("use.html")
-        # Ensure password was submitted
-        elif not request.form.get("password"):
-            flash("Must provide password", "error")
-            return render_template("use.html")
+            session["user_id"] = rows[0][0] 
+            session["context"] = rows[0][2]
+            print(rows[0][2], "context")
+            return redirect("/")
+        else:
+            return redirect("/getOTP", code=303)
 
-        # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE phonenumber = ?", (request.form.get("phoneNumber"), )).fetchall()
-        # Ensure username exists and password is correct
-        if (not rows) or (not check_password_hash(rows[0][2], request.form.get("password"))):
-            flash("invalid phone number and/or password", "error")
-            return render_template("use.html")
-        #print(rows)
-        # Remember which user has logged in
-        session["user_id"] = rows[0][0]
-        session["context"] = rows[0][3]
-        # Redirect user to home page
-        return redirect("/")
 
-    # User reached route via GET (as by clicking a link or via redirect)
-    else:
-        return render_template("use.html")
+@app.route("/loginOTP", methods = ["GET", "POST"])
+def loginotp():
+    if request.method == "GET":
+        number = session["number"]
+        account_sid = 'ACOUNT_SID'
+        auth_token = 'ACOUNT_TOKEN'
+        otp = random.randint(100000,999999)
+        sms = f"Your JANNSEVA verification code is: {otp}"
+        client = Client(account_sid, auth_token)
+        message = client.messages.create(
+        from_='NUM',
+        body=sms,
+        to=number
+        )
+        session["otp"] = str(otp)
+        return render_template("login.html")
 
+    if request.method == "POST":
+        code = request.form.get("OTP")
+        if code == session["otp"]:
+            rows = db.execute(
+            "SELECT * FROM users WHERE phonenumber = ?", (session["number"],)).fetchall()
+            session["user_id"] = rows[0][0] 
+            session["context"] = rows[0][2]
+            print(rows[0][2], "context")
+            return redirect("/")
+        else:
+            return redirect("/loginOTP", code=303)
+
+    
+    
 
 if __name__ == '__main__':
     app.run(debug=True)

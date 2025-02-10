@@ -1,6 +1,6 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f9fa;
     margin: 0;
     padding: 0;
     display: flex;
@@ -11,57 +11,77 @@ body {
 
 .container {
     background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     text-align: center;
-    width: 300px;
+    width: 320px;
 }
 
 h2 {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    font-size: 20px;
+    font-weight: 500;
+    color: #333;
 }
 
 label {
     display: block;
     text-align: left;
-    margin-top: 10px;
+    font-size: 14px;
+    color: #555;
+    margin-top: 12px;
 }
 
 input {
     width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    padding: 10px;
+    margin-top: 6px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fafafa;
+    outline: none;
+    transition: border 0.2s;
+}
+
+input:focus {
+    border-color: #007bff;
+    background: white;
 }
 
 button {
-    background-color: #28a745;
+    background-color: #007bff;
     color: white;
     border: none;
-    padding: 10px;
-    margin-top: 15px;
+    padding: 12px;
+    margin-top: 18px;
     width: 100%;
-    border-radius: 5px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
 }
 
 button:hover {
-    background-color: #218838;
+    background-color: #0056b3;
+    transform: translateY(-1px);
 }
 
 .flash {
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    font-size: 14px;
     color: white;
+    text-align: center;
 }
 
 .flash.error {
-    background-color: #dc3545;
+    background-color: #e63946;
 }
 
 .flash.success {
-    background-color: #28a745;
+    background-color: #2a9d8f;
 }

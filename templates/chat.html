@@ -7,110 +7,147 @@
     <script defer src="/static/script.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f4f4f4;
+            background-color: #f8f9fa;
             margin: 0;
         }
-
+        
         .container {
-            width: 350px;
+            width: 360px;
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             text-align: center;
+            position: relative;
         }
-
+        
         #chat-box {
             height: 400px;
             overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #fff;
+            border: 1px solid #e1e1e1;
+            padding: 12px;
+            margin-bottom: 12px;
+            background: #ffffff;
+            border-radius: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: #ccc transparent;
         }
-
+        
+        /* Scrollbar Styling */
+        #chat-box::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #chat-box::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+        
         .message {
-            padding: 8px;
-            margin: 5px;
-            border-radius: 5px;
-            display: inline-block;
-            max-width: 80%;
+            padding: 10px 14px;
+            margin: 6px 0;
+            border-radius: 8px;
+            display: block;
+            max-width: 75%;
+            font-size: 14px;
+            word-wrap: break-word;
         }
-
+        
+        /* User message style */
         .user {
             background: #d1e7dd;
+            color: #0a3622;
+            align-self: flex-end;
             text-align: right;
+            border-radius: 12px 12px 0 12px;
         }
-
+        
+        /* Bot message style */
         .bot {
             background: #f8d7da;
+            color: #842029;
             text-align: left;
+            border-radius: 12px 12px 12px 0;
         }
-
+        
         input {
             width: calc(100% - 20px);
             padding: 10px;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #f8f9fa;
+            outline: none;
+            transition: border 0.2s;
         }
-
+        
+        input:focus {
+            border-color: #007bff;
+            background: white;
+        }
+        
         button {
+            background-color: #007bff;
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
-            margin-top: 5px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s, transform 0.1s;
         }
-
+        
+        /* Button styles */
+        .logout-btn {
+            text-decoration: None;
+            background: #e63946;
+            color: white;
+        }
+        
+        .login-btn {
+            background: #5a67d8;
+            color: white;
+        }
+        
+        .signin-btn {
+            text-decoration: None;
+            background: #2a9d8f;
+            color: white;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        /* Top button container */
         .btn-container {
             display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 10px;
+            justify-content: flex-end;
+            gap: 8px;
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 12px;
+            right: 12px;
         }
-
-        .logout-btn {
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-            text-decoration: None;
-            background: #ff4d4d;
-            color: white;
+        
+        .btn-container .logout-btn,
+        .btn-container .login-btn,
+        .btn-container .signin-btn {
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 500;
         }
-
-        .login-btn {
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-            text-decoration: None;
-            background: rgb(87, 27, 199);
-            color: white;
-        }
-
-        .signin-btn {
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-            text-decoration: None;
-            background: #28a745;
-            color: white;
-        }
+        
     </style>
 </head>
 <body>
     <div class="btn-container">
-        <a href="/login" class="login-btn">Login</a>
         <a href="/signin" class="signin-btn">Sign In</a>
         <a href="/logout" class="logout-btn">Logout</a>
     </div>
