@@ -27,4 +27,4 @@ JannSeva is a Flask-based web application designed to address rural healthcare c
 - Google Gemini API access
 
 ## App Flow Chart
-![App Flow Chart](SERVER(1).png)
+![App Flow Chart](SERVER (1).png)
